@@ -33,6 +33,66 @@ modules:
       buildpack: nodejs_buildpack
     requires:
       - name: DemoSupplierPortal-db
+  # ------------------ APPLICATION CONTENT ---------------------
+  - name: demo-appcontent
+  # ------------------------------------------------------------
+    type: com.sap.application.content
+    path: app
+    requires:
+      - name: demo-destination-service
+      - name: demo-html5-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - name: demoappbooks
+          artifacts:
+            - demoappbooks.zip
+          target-path: resources/
+
+  - name: demoappbooks
+    type: html5
+    path: app/demoappbooks
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm ci
+        - npm run build
+      supported-platforms: []
+  # ------------------ DESTINATION CONTENT ---------------------
+  - name: demo-destinationcontent
+  # ------------------------------------------------------------
+    type: com.sap.application.content
+    build-parameters:
+      no-source: true
+    requires:
+      - name: DemoSupplierPortal-auth
+        parameters:
+          service-key:
+            name: DemoSupplierPortal-auth-key
+      - name: DemoSupplierPortal-html5-repo-host
+        parameters:
+          service-key:
+            name: DemoSupplierPortal-html5-repo-hos-key
+      - name: DemoSupplierPortal-destination-service
+        parameters:
+          content-target: true
+    parameters:
+      content:
+        instance:
+          existing_destinations_policy: update
+          destinations:
+            - Name: DemoSupplierPortal-html5-repository
+              ServiceInstanceName: DemoSupplierPortal-html5-repo-host
+              ServiceKeyName: DemoSupplierPortal-html5-repo-host-key
+              sap.cloud.service: demoapp
+            - Name: DemoSupplierPortal-auth
+              Authentication: OAuth2UserTokenExchange
+              ServiceInstanceName: DemoSupplierPortal-auth
+              ServiceKeyName: DemoSupplierPortal-auth-key
+              sap.cloud.service: demoapp
 
 resources:
   - name: DemoSupplierPortal-db
@@ -49,3 +109,34 @@ resources:
       config:
         xsappname: DemoSupplierPortal-${org}-${space}
         tenant-mode: dedicated
+  # ------------------------------------------------------------
+  - name: DemoSupplierPortal-html5-repo-host
+  # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+
+  # ------------------------------------------------------------
+  - name: DemoSupplierPortal-destination-service
+  # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    requires:
+      - name: srv-api
+    parameters:
+      service: destination
+      service-plan: lite
+      config:
+        version: 1.0.0
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            existing_destinations_policy: update
+            destinations:
+              - Name: DemoSupplierPortal-srv
+                URL: ~{srv-api/srv-url}
+                Authentication: NoAuthentication
+                Type: HTTP
+                ProxyType: Internet
+                HTML5.ForwardAuthToken: true
+                HTML5.DynamicDestination: true
