@@ -9,3 +9,5 @@ It consists of three Branches for the Environments:
   - `develop/`: Development branch.
   - `test/`: Testing or staging branch.
   - `main/`: Production branch.
+
+In the Demo BAS is used
