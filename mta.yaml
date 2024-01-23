@@ -24,6 +24,7 @@ modules:
           srv-url: ${default-url}
     requires:
       - name: DemoSupplierPortal-db
+      - name: DemoSupplierPortal-auth
 
   - name: DemoSupplierPortal-db-deployer
     type: hdb
@@ -39,3 +40,12 @@ resources:
     parameters:
       service: hana
       service-plan: hdi-shared
+  - name: DemoSupplierPortal-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: DemoSupplierPortal-${org}-${space}
+        tenant-mode: dedicated
