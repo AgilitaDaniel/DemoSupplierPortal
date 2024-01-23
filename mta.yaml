@@ -39,8 +39,8 @@ modules:
     type: com.sap.application.content
     path: app
     requires:
-      - name: demo-destination-service
-      - name: demo-html5-repo-host
+      - name: DemoSupplierPortal-destination-service
+      - name: DemoSupplierPortal-html5-repo-host
         parameters:
           content-target: true
     build-parameters:
